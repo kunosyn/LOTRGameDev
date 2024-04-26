@@ -4,7 +4,7 @@ local ServerScriptService = game:GetService('ServerScriptService')
 Knit = require(ReplicatedStorage.Packages.Knit)
 
 
-Knit.AddServices(ServerScriptService.Services)
+Knit.AddServices(ServerScriptService.Source.Services)
 
 Knit.Start():andThen(function()
     print('Knit Server Started.')

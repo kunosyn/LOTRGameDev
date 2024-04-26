@@ -33,6 +33,10 @@
 
             "Source": {
                 "$path": "src/ServerStorage"
+            },
+
+            "Tools": {
+                "$path": "src/ServerStorageTools"
             }
         },
 
