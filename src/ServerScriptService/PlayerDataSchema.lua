@@ -1,0 +1,3 @@
+return {
+    SkillPoints = 0
+}
