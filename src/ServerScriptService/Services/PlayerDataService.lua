@@ -6,6 +6,7 @@ local Knit = require(ReplicatedStorage.Packages.Knit)
 local ProfileService = require(ServerScriptService.Packages.ProfileService)
 local PlayerDataSchema = require(ServerScriptService.Source.PlayerDataSchema)
 
+local AdminService = nil
 
 local PlayerDataService = Knit.CreateService({
     Name = 'PlayerDataService',
@@ -23,16 +24,18 @@ function PlayerDataService:KnitInit()
 end
 
 function PlayerDataService:KnitStart()
+    AdminService = Knit.GetService('AdminService')
+
     for _,player in Players:GetPlayers() do
         self:OnPlayerJoin(player)
     end
 
     Players.PlayerAdded:Connect(function(player: Player)
-        task.spawn(function() 
-            self:OnPlayerJoin(player) 
+        task.spawn(function()
+            self:OnPlayerJoin(player)
         end)
     end)
-    
+
     Players.PlayerRemoving:Connect(function(player: Player)
         self:OnPlayerLeave(player)
     end)
@@ -40,6 +43,7 @@ end
 
 
 function PlayerDataService:OnPlayerJoin(player: Player)
+    self.PlayerData[player] = { Loaded = false }
     local profile = self.ProfileStore:LoadProfileAsync(`Player_{player.UserId}`)
 
     if profile then
@@ -54,7 +58,7 @@ function PlayerDataService:OnPlayerJoin(player: Player)
 
 
         if player:IsDescendantOf(Players) then
-            self.PlayerData[player] = profile
+            self.PlayerData[player].Profile = profile
             self:OnProfileLoaded(player, profile)
         else
             profile:Release()
@@ -65,7 +69,7 @@ function PlayerDataService:OnPlayerJoin(player: Player)
 end
 
 function PlayerDataService:OnPlayerLeave(player: Player)
-    local profile = self.PlayerData[player]
+    local profile = self.PlayerData[player].Profile
 
     if profile then
         profile:Release()
@@ -74,16 +78,22 @@ end
 
 function PlayerDataService:OnProfileLoaded(player: Player, profile: typeof(PlayerDataSchema))
     print(`[PlayerDataService]: Loaded profile for {player.Name}.`)
+
+    self.PlayerData[player].Loaded = true
+    AdminService:ProfileLoaded(player, profile)
 end
 
 function PlayerDataService:ChangePlayerData(player: Player, attribute: string, value: any)
-    self.PlayerData[player].Data[attribute] = value
+    repeat task.wait() until self.PlayerData[player].Loaded
 
-    return self.PlayerData[player].Data
+    self.PlayerData[player].Profile.Data[attribute] = value
+    return self.PlayerData[player].Profile.Data
 end
 
 function PlayerDataService:GetPlayerData(player: Player)
-    return self.PlayerData[player].Data
+    repeat task.wait() until self.PlayerData[player].Loaded
+
+    return self.PlayerData[player]
 end
 
 return PlayerDataService
