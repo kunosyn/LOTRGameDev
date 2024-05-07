@@ -21,7 +21,7 @@ local SkillService = Knit.CreateService({
     PlayerData = { }
 })
 
-function SkillService:KnitStart()
+function SkillService:KnitStart(): nil
     PlayerDataService = Knit.GetService('PlayerDataService')
 
     for _,player in Players:GetPlayers() do
@@ -64,26 +64,29 @@ function SkillService:PlayerAdded(player: Player): nil
         end
     end
 
-    player.CharacterAdded:Connect(function (character: Model)
+    local function characterAdded(character: Model): nil
         for _,v in self.PlayerData[player].Skills do
             if v.ModifyProperties then
                 v.ModifyProperties(player, character, character:FindFirstChildOfClass('Humanoid'))
             end
         end
-    end)
+    end
+
+    player.CharacterAdded:Connect(characterAdded)
+    characterAdded(if not player.Character or not player.Character.Parent then player.CharacterAdded:Wait() else player.Character)
 end
 
-function SkillService:PlayerRemoving(player: Player)
+function SkillService:PlayerRemoving(player: Player): nil
     self.PlayerData[player] = nil
 end
 
-function SkillService.Client:GetPlayerSkills(player: Player)
+function SkillService.Client:GetPlayerSkills(player: Player): table
     repeat task.wait() until self.Server.PlayerData[player] and self.Server.PlayerData[player].Stored ~= nil
 
     return self.Server.PlayerData[player].Skills
 end
 
-function SkillService.Client:GetSkillPoints(player: Player, skillGroup: number?)
+function SkillService.Client:GetSkillPoints(player: Player, skillGroup: number?): table | number
     repeat task.wait() until self.Server.PlayerData[player] and self.PlayerData[player].Stored ~= nil
 
     return if not skillGroup then self.Server.PlayerData[player].Data.SkillTreeExp else (self.Server.PlayerData[player].Data.SkillTreeExp[skillGroup] or 0)

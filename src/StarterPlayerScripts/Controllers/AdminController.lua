@@ -51,6 +51,17 @@ function AdminController:ListenForServerRequests()
             local redactMessage: string = args[2]
 
             self.RedactedNames[player] = redactMessage
+        elseif request == 'CommandAutoComplete' then
+            local commandInstance: { TextChatCommand } | TextChatCommand = args[1]
+            local autocomplete: boolean = args[2]
+
+            if typeof(commandInstance) == 'table' then
+                for _,command in commandInstance do
+                    command.AutocompleteVisible = autocomplete
+                end
+            else
+                commandInstance.AutocompleteVisible = true
+            end
         end
     end)
 

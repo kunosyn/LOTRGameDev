@@ -8,7 +8,7 @@ return {
 
         Groups = {
             [33822371] = {
-                { RankIds = { 252 },  Value = '[ARC]', Color = '#000000' },
+                { RankIds = { 252 },  Value = '[ARC]', Color = '#94db8a' },
                 { RankIds = { 255 }, Value = '[King]', Color = '#000000' }
             }
         }
@@ -16,7 +16,7 @@ return {
 
     RedactedNames = {
         Users = {
-            [256584577] = { RedactMessage = '[Person]:' }
+            [256584577] = { RedactMessage = '[UrMom]:' }
         },
 
         Groups = {

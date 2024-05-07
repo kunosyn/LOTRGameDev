@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local Command = require(script.Parent.Parent.Command)
 
 return function(AdminService)
-    local PermBanCommand = Command.new('/permban', AdminService, { CommandSecondaryAlias = '/pban' })
+    local PermBanCommand: Command.Command = Command.new('permban', AdminService, { CommandSecondaryAlias = '/pban', AutoCompleteIfHasPermissions = true })
 
     PermBanCommand.Permissions = {
         Any = true
@@ -17,9 +17,7 @@ return function(AdminService)
 
         if not target then
             return { Exception = true, Message = 'User is not in the game.' }
-        end
-
-        if target == player then
+        elseif target == player then
             return { Exception = true, Message = 'You cannot permban yourself.' }
         end
 
@@ -28,4 +26,6 @@ return function(AdminService)
 
         return { Success = true }
     end
+
+    table.insert(AdminService.Commands, PermBanCommand)
 end

@@ -9,43 +9,38 @@ Commands.Name = 'Commands'
 
 type Implementation = {
     __index: Implementation,
+
     new: ( name: string ) -> Command,
-    Callback: ( self: Command, player: Player, args: { string }) -> nil
+    Callback: ( self: Command, player: Player, args: { string }) -> boolean,
+    CheckPermissions: ( self: Command, player: Player ) -> boolean,
 }
 
 type Prototype = {
     CommandInstance: TextChatCommand,
     Permissions: table,
-    Name: string
+    Name: string,
+    AutoCompleteIfHasPermissions: boolean
 }
 
-local Command: Implementation = { }
+local Command: Implementation = { } :: Implementation
 Command.__index = Command
 
 export type Command = typeof(setmetatable({ } :: Prototype, { } :: Implementation))
 
 function Command.new(name: string, AdminService, Builder: { CommandPrimaryAlias: string?, CommandSecondaryAlias: string?, Parent: Instance?, AutoComplete: boolean?, AutoCompleteIfHasPermissions: boolean? }): Command
     local self = setmetatable({ } :: Prototype, Command)
+    Builder = if Builder then Builder else { }
 
     self.Name = name
 
     self.CommandInstance = Instance.new('TextChatCommand')
     self.CommandInstance.Parent = if Builder then Builder.Parent or Commands else Commands
 
-    self.CommandInstance.PrimaryAlias = if Builder and Builder.CommandPrimaryAlias then Builder.CommandPrimaryAlias else `/{name}`
-    self.CommandInstance.SecondaryAlias = if Builder and Builder.CommandSecondaryAlias then Builder.CommandSecondaryAlias else ''
+    self.CommandInstance.PrimaryAlias = if Builder.CommandPrimaryAlias then Builder.CommandPrimaryAlias else `/{name}`
+    self.CommandInstance.SecondaryAlias = if Builder.CommandSecondaryAlias then Builder.CommandSecondaryAlias else ''
 
-    self.CommandInstance.AutocompleteVisible = if Builder and Builder.AutoComplete then true else false
-
-    if Builder and Builder.AutoCompleteIfHasPermissions then
-        for _,player in Players:GetPlayers() do
-            if not self:CheckPermissions(player) then continue end
-
-            AdminService:ExecuteClientLogic(player, 'CommandAutoComplete', {
-                AutoComplete = true, CommandInstance = self.CommandInstance
-            })
-        end
-    end
+    self.CommandInstance.AutocompleteVisible = not (not Builder.AutoComplete)
+    self.AutoCompleteIfHasPermissions =  not (not Builder.AutoCompleteIfHasPermissions)
 
     self.CommandInstance.Triggered:Connect(function(originTextSource: TextSource, unfilteredText: string)
         local player = Players:FindFirstChild(originTextSource.Name)
@@ -70,11 +65,13 @@ function Command:CheckPermissions(player: Player): boolean
     if self.Permissions.Any then return true end
 
     for groupId, ranks in self.Permissions do
-        if player:IsInGroup(groupId) then
-            for _, rankId in ranks do
-                if player:GetRankInGroup(groupId) == rankId then
-                    return true
-                end
+        if not player:IsInGroup(groupId) then
+            continue
+        end
+
+        for _, rankId in ranks do
+            if player:GetRankInGroup(groupId) == rankId then
+                return true
             end
         end
     end

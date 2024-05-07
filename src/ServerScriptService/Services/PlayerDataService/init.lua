@@ -4,7 +4,7 @@ local Players = game:GetService('Players')
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
 local ProfileService = require(ServerScriptService.Packages.ProfileService)
-local PlayerDataSchema = require(ServerScriptService.Source.PlayerDataSchema)
+local PlayerDataSchema = require(script.PlayerDataSchema)
 
 local AdminService = nil
 

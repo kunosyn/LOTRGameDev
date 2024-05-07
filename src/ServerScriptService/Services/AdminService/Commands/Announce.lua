@@ -3,7 +3,7 @@ local TextService = game:GetService("TextService")
 local Command = require(script.Parent.Parent.Command)
 
 return function(AdminService)
-    local MessageCommand = Command.new('announce', AdminService, { CommandSecondaryAlias = '/a' })
+    local MessageCommand: Command.Command = Command.new('announce', AdminService, { CommandSecondaryAlias = '/a', AutoCompleteIfHasPermissions = true })
 
     MessageCommand.Permissions = {
         Any = true
@@ -11,7 +11,7 @@ return function(AdminService)
 
     function MessageCommand:Callback(player: Player, args: { string }): boolean
         local message: { string } = table.concat(args, ' ')
-
+        
         local success,errorMessage = pcall(function()
             message = TextService:FilterStringAsync(message, player.UserId)
         end)
@@ -24,4 +24,6 @@ return function(AdminService)
             return { Exception = true, Message = 'Message failed to send.' }
         end
     end
+
+    table.insert(AdminService.Commands, MessageCommand)
 end

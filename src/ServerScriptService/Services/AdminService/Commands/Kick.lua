@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local Command = require(script.Parent.Parent.Command)
 
 return function(AdminService)
-    local KickCommand = Command.new('kick', AdminService)
+    local KickCommand: Command.Command = Command.new('kick', AdminService, { AutoCompleteIfHasPermissions = true})
 
     KickCommand.Permissions = {
         Any = true
@@ -28,4 +28,6 @@ return function(AdminService)
 
         return { Success = true }
     end
+
+    table.insert(AdminService.Commands, KickCommand)
 end

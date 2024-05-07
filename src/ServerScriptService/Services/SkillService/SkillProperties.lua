@@ -19,6 +19,7 @@ return {
 
             ModifyProperties = function(player: Player, character: Model, humanoid: Humanoid)
                 humanoid.MaxHealth += (humanoid.MaxHealth * .1)
+                humanoid.Health = humanoid.MaxHealth
             end
         },
 
@@ -41,6 +42,7 @@ return {
 
             ModifyProperties = function(player: Player, character: Model, humanoid: Humanoid)
                 humanoid.MaxHealth += (humanoid.MaxHealth * .25)
+                humanoid.Health = humanoid.MaxHealth
             end
         },
 
