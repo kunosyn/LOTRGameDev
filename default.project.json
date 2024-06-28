@@ -8,7 +8,7 @@
             "$className": "ServerScriptService",
 
             "Source": {
-                "$path": "src/ServerScriptService"
+                "$path": "src/server"
             },
 
             "Packages": {
@@ -20,7 +20,7 @@
             "$className": "ReplicatedStorage",
 
             "Source": {
-                "$path": "src/ReplicatedStorage"
+                "$path": "src/shared"
             },
 
             "Packages": {
@@ -32,11 +32,11 @@
             "$className": "ServerStorage",
 
             "Source": {
-                "$path": "src/ServerStorage"
+                "$path": "src/storage"
             },
 
             "Tools": {
-                "$path": "src/ServerStorageTools"
+                "$path": "src/tools"
             }
         },
 
@@ -47,7 +47,7 @@
                 "$className": "StarterPlayerScripts",
 
                 "Source": {
-                    "$path": "src/StarterPlayerScripts"
+                    "$path": "src/client"
                 }
             }
         }
