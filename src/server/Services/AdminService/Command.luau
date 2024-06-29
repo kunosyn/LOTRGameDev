@@ -3,31 +3,42 @@
 
 local Players = game:GetService('Players')
 local TextChatService = game:GetService('TextChatService')
+local ServerScriptService = game:GetService('ServerScriptService')
 
 local Commands = TextChatService:FindFirstChild('Commands') or Instance.new('Folder')
 Commands.Parent = TextChatService
 Commands.Name = 'Commands'
 
+local Utility = ServerScriptService.Source.Utility
+local parentService = require(script.Parent)
+
+
+type AdminServiceT = typeof(parentService)
+
+export type CommandExecutionStatusT = {
+    IsSuccess: boolean,
+    Message: string?,
+    Error: string?
+}
 
 type Implementation = {
     __index: Implementation,
 
-    new: ( name: string, AdminService: any, Builder: {
+    new: ( name: string, AdminService: AdminServiceT, Builder: {
         CommandPrimaryAlias: string?,
         CommandSecondaryAlias: string?,
         Parent: Instance?,
         AutoComplete: boolean?,
         AutoCompleteIfHasPermissions: boolean?,
 
-    } ) -> Command,
+    } ) -> Type,
 
-    Callback: ( self: Command, player: Player)  -> CommandExecutionStatus,
-    CheckPermissions: ( self: Command, player: Player, ...any ) -> boolean,
-    Execute: ( self: Command, player: Player, ...any ) -> CommandExecutionStatus,
+    Callback: ( self: Type, player: Player, ...string )  -> CommandExecutionStatusT,
+    CheckPermissions: ( self: Type, player: Player) -> boolean,
+    Execute: ( self: Type, player: Player, ...string ) -> CommandExecutionStatusT,
 
-    Error: ( message: string, error: string? ) -> CommandExecutionStatus,
-    Success: ( ) -> CommandExecutionStatus,
-    Log: ( self: Command, executor: Player, target: Player?, reason: string? ) -> ()
+    Error: ( message: string, error: string? ) -> CommandExecutionStatusT,
+    Success: ( ) -> CommandExecutionStatusT
 }
 
 type Prototype = {
@@ -35,28 +46,22 @@ type Prototype = {
     Permissions: { [number]: {number}, Any: boolean? },
     Name: string,
     AutoCompleteIfHasPermissions: boolean,
-    AdminService: any
-}
-
-export type CommandExecutionStatus = {
-    IsSuccess: boolean,
-    Message: string?,
-    Error: string?
+    AdminService: AdminServiceT
 }
 
 
 local Command: Implementation = { } :: Implementation
 Command.__index = Command
 
-export type Command = typeof(setmetatable({ } :: Prototype, { } :: Implementation))
+export type Type = typeof(setmetatable({ } :: Prototype, { } :: Implementation))
 
-function Command.new (name: string, AdminService, Builder: {
+function Command.new (name: string, AdminService: AdminServiceT, Builder: {
     CommandPrimaryAlias: string?,
     CommandSecondaryAlias: string?,
     Parent: Instance?,
     AutoComplete: boolean?,
     AutoCompleteIfHasPermissions: boolean?
-}): Command
+}): Type
     local self = setmetatable({} :: Prototype, Command)
     Builder = if Builder then Builder else {}
 
@@ -82,10 +87,10 @@ function Command.new (name: string, AdminService, Builder: {
         local args = unfilteredText:split(' ')
         table.remove(args, 1)
 
-        local result: CommandExecutionStatus = self:Execute(player, unpack(args))
+        local result: CommandExecutionStatusT = self:Execute(player, unpack(args))
 
 
-        if not result.IsSuccess then
+        if not result.IsSuccess and result.Message then
             AdminService:TriggerCommandFailed(player, result.Message, result.Error)
         else
             AdminService:SendClientMessage(player, 'Command successfully executed.')
@@ -95,16 +100,12 @@ function Command.new (name: string, AdminService, Builder: {
     return self
 end
 
-function Command.Error (message: string, error: string?): CommandExecutionStatus
+function Command.Error (message: string, error: string?): CommandExecutionStatusT
     return { IsSuccess = false, Message = message, Error = error }
 end
 
-function Command.Success (): CommandExecutionStatus
+function Command.Success (): CommandExecutionStatusT
     return { IsSuccess = true }
-end
-
-function Command:Log (executor: Player, target: Player?, reason: string?)
-    self.AdminService:LogCommand(executor, self.Name, target, reason)
 end
 
 function Command:CheckPermissions (player: Player): boolean
@@ -127,7 +128,7 @@ function Command:CheckPermissions (player: Player): boolean
     return false
 end
 
-function Command:Execute (player: Player, ...): CommandExecutionStatus
+function Command:Execute (player: Player, ...: string): CommandExecutionStatusT
     if not self:CheckPermissions(player) then
         return Command.Error('Invalid permissions to run command.')
     end
