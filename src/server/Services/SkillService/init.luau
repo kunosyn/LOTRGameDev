@@ -19,11 +19,11 @@ type Skill = {
 
 local PlayerDataService = nil
 
-local SkillService = Knit.CreateService({
+local SkillService = {
     Name = 'SkillService',
     Client = { },
     PlayerData = { }
-})
+}
 
 function SkillService:KnitStart()
     PlayerDataService = Knit.GetService('PlayerDataService')
@@ -46,44 +46,44 @@ end
 -- end
 
 function SkillService:PlayerAdded(player: Player)
-    local playerData: PlayerData = PlayerDataService:GetPlayerData(player)
+    -- local playerData: PlayerData = PlayerDataService:GetPlayerData(player)
 
-    self.PlayerData[player] = {
-        Stored = playerData,
-        Skills = { }
-    }
+    -- self.PlayerData[player] = {
+    --     Stored = playerData,
+    --     Skills = { }
+    -- }
 
-    for skillGroupNumber,skillGroupSkills in self.PlayerData[player].Stored.Profile.Data.UnlockedSkills do
-        local skillSet = skillGroupSkills
+    -- for skillGroupNumber,skillGroupSkills in self.PlayerData[player].Stored.UnlockedSkills do
+    --     local skillSet = skillGroupSkills
 
-        for _, currentSkill in SkillProperties[tonumber(skillGroupNumber)] do
-            local hasSkill: boolean = not (not table.find(skillSet, currentSkill.Id))
-            if not hasSkill then continue end
+    --     for _, currentSkill in SkillProperties[tonumber(skillGroupNumber)] do
+    --         local hasSkill: boolean = not (not table.find(skillSet, currentSkill.Id))
+    --         if not hasSkill then continue end
 
-            for _,cancelledSkillId in (currentSkill.Overrides or { }) do
-                self.PlayerData[player].Skills[cancelledSkillId] = nil
-            end
+    --         for _,cancelledSkillId in (currentSkill.Overrides or { }) do
+    --             self.PlayerData[player].Skills[cancelledSkillId] = nil
+    --         end
 
-            self.PlayerData[player].Skills[`{skillGroupNumber}:{currentSkill.Id}`] = currentSkill
-        end
-    end
+    --         self.PlayerData[player].Skills[`{skillGroupNumber}:{currentSkill.Id}`] = currentSkill
+    --     end
+    -- end
 
-    local function characterAdded(character: Model)
-        for _, currentSkill in self.PlayerData[player].Skills do
-            if currentSkill.ModifyProperties then
-                currentSkill.ModifyProperties(player, character, character:FindFirstChildOfClass('Humanoid'))
-            end
-        end
-    end
+    -- local function characterAdded(character: Model)
+    --     for _, currentSkill in self.PlayerData[player].Skills do
+    --         if currentSkill.ModifyProperties then
+    --             currentSkill.ModifyProperties(player, character, character:FindFirstChildOfClass('Humanoid'))
+    --         end
+    --     end
+    -- end
 
-    player.CharacterAdded:Connect(characterAdded)
+    -- player.CharacterAdded:Connect(characterAdded)
 
-    characterAdded(
-        if not player.Character or not player.Character.Parent then
-            player.CharacterAdded:Wait()
-        else
-            player.Character
-    )
+    -- characterAdded(
+    --     if not player.Character or not player.Character.Parent then
+    --         player.CharacterAdded:Wait()
+    --     else
+    --         player.Character
+    -- )
 end
 
 function SkillService:PlayerRemoving(player: Player)

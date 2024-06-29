@@ -29,7 +29,7 @@ function SkillTree (
     Position = UDim2.fromScale(.5, .5),
 
     Image = 'rbxassetid://18180701174',
-
+    Visible = props.shown,
 
     [Fusion.Children] = {
       scope:New 'Frame' {

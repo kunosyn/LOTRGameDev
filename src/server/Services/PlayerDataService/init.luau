@@ -11,13 +11,13 @@ local PlayerDataSchema = require(script.PlayerDataSchema)
 
 local AdminService = nil
 
-local PlayerDataService = Knit.CreateService({
+local PlayerDataService = {
     Name = 'PlayerDataService',
 
     Client = { },
     PlayerData = { },
     ProfileStore = nil
-})
+}
 
 function PlayerDataService:KnitInit()
     self.ProfileStore = ProfileService.GetProfileStore(

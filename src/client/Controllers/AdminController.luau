@@ -10,11 +10,11 @@ local Knit = require(ReplicatedStorage.Packages.Knit)
 
 local AdminService = nil
 
-local AdminController = Knit.CreateController({
+local AdminController = {
     Name = 'AdminController',
     ChatTags = { },
     RedactedNames = { }
-})
+}
 
 function AdminController:KnitStart()
     AdminService = Knit.GetService('AdminService')

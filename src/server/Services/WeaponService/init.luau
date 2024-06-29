@@ -1,16 +1,19 @@
+--!strict
+--!nolint LocalShadow
+
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages.Knit)
 
 local WeaponConfiguration = require(ReplicatedStorage.Source.Configurations.Weapons)
 
 
-local WeaponService = Knit.CreateService({
+local WeaponService = {
     Name = 'WeaponService',
 
     Client = {
         Killfeed = Knit.CreateUnreliableSignal()
     }
-})
+}
 
 function WeaponService:KnitInit()
 end
@@ -28,7 +31,10 @@ function WeaponService:DamageSanityChecks(character: Model, target: Model, origi
     if origin:IsA('Tool') and origin:HasTag('Weapon') then
         local weaponProperties = WeaponConfiguration[origin.Name]
 
-        return origin.Parent == character and ((target.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude <= weaponProperties.MaxRange)
+        local humanoidRootPart: Part? = target:FindFirstChild('HumanoidRootPart') :: Part?
+        if not humanoidRootPart then return false end
+
+        return origin.Parent == character and ((humanoidRootPart.Position - humanoidRootPart.Position).Magnitude <= weaponProperties.MaxRange)
     else
         return false
     end
@@ -38,17 +44,19 @@ function WeaponService:DamagePlayer(player: Player, target: Player, origin: Tool
     local targetCharacter = target.Character
     local character = player.Character
 
-    if not self:DamageSanityChecks(character, targetCharacter, origin) then
+    if not self:DamageSanityChecks(character, targetCharacter, origin) or not character then
         return
     end
 
-    local humanoid: Humanoid = character:FindFirstChildOfClass('Humanoid')
+    local humanoid: Humanoid? = character:FindFirstChildOfClass('Humanoid')
+    if not humanoid then return end
+    
     if humanoid.Health <= 0 then return end
 
     local weaponProperties = WeaponConfiguration[origin.Name]
     humanoid:TakeDamage(weaponProperties.Damage)
 
-    if humanoid.health <= 0 then
+    if humanoid.Health <= 0 then
         self.Client.Killfeed:FireAll(player, target, origin)
     end
 end

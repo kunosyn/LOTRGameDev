@@ -16,7 +16,7 @@ local scope = Fusion.scoped(Fusion, {
 })
 
 
-local GuiController = Knit.CreateController {
+local GuiController = {
   Name = 'GuiController',
   PlayerGui = nil,
   ScreenGui = nil,
@@ -51,7 +51,7 @@ function GuiController:KnitStart ()
   assert(PlayerGui, '[GuiController]: PlayerGui returned nil.')
 
   self:SetupStates()
-  self:SetCoreGuiEnabled(false)
+  --self:SetCoreGuiEnabled(false)
 
   local ScreenGui: Instance = scope:New 'ScreenGui' {
     Name = 'HUD',
