@@ -32,7 +32,7 @@
             "$className": "ServerStorage",
 
             "Source": {
-                "$path": "src/storage"
+                "$path": "src/private"
             },
 
             "Tools": {
