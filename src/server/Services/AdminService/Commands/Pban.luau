@@ -3,19 +3,37 @@
 
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local ServerScriptService = game:GetService('ServerScriptService')
 
 local Command = require(script.Parent.Parent.Command)
 local Globals = require(ReplicatedStorage.Source.Globals)
 
+local Utility = ServerScriptService.Source.Utility
+local types = require(Utility.Types)
 
-return function (AdminService)
-    local PermBanCommand: Command.Command = Command.new('permban', AdminService, { CommandSecondaryAlias = '/pban', AutoCompleteIfHasPermissions = true })
+
+type AdminServiceT = types.AdminServiceT
+type CommandT = types.CommandT
+type CommandExecutionStatusT = types.CommandExecutionStatusT
+
+
+return function (AdminService: AdminServiceT)
+    local PermBanCommand: CommandT = Command.new(
+        'permban',
+        AdminService,
+
+        { 
+            CommandSecondaryAlias = '/pban', 
+            AutoCompleteIfHasPermissions = true 
+        }
+    )
+
 
     PermBanCommand.Permissions = {
         Any = true
     }
 
-    function PermBanCommand:Callback (player: Player, ...): Command.CommandExecutionStatus
+    function PermBanCommand:Callback (player: Player, ...: string): CommandExecutionStatusT
         local args: { string } = { ... }
         if #args < 1 then return Command.Error('No username entered.') end
 
@@ -36,7 +54,7 @@ return function (AdminService)
 
 
         if success then
-            self:Log(player, target, reason)
+            AdminService:LogCommand(player, self.Name, target, reason)
 
             return Command.Success()
         else
@@ -44,5 +62,5 @@ return function (AdminService)
         end
     end
 
-    table.insert(AdminService.Commands, PermBanCommand)
+    AdminService:RegisterCommand(PermBanCommand)
 end

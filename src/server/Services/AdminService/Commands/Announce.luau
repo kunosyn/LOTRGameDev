@@ -2,16 +2,35 @@
 --!nolint LocalShadow
 
 local TextService = game:GetService('TextService')
+local ServerScriptService = game:GetService('ServerScriptService')
 local Command = require(script.Parent.Parent.Command)
 
-return function(AdminService)
-    local MessageCommand: Command.Command = Command.new('announce', AdminService, { CommandSecondaryAlias = '/a', AutoCompleteIfHasPermissions = true })
+local Utility = ServerScriptService.Source.Utility
+local types = require(Utility.Types)
+
+
+type AdminServiceT = types.AdminServiceT
+type CommandT = types.CommandT
+type CommandExecutionStatusT = types.CommandExecutionStatusT
+
+
+return function(AdminService: AdminServiceT)
+    local MessageCommand: CommandT = Command.new(
+        'announce',
+        AdminService,
+
+        { 
+            CommandSecondaryAlias = '/a', 
+            AutoCompleteIfHasPermissions = true 
+        }
+    )
+
 
     MessageCommand.Permissions = {
         Any = true
     }
 
-    function MessageCommand:Callback (player: Player, ...): Command.CommandExecutionStatus
+    function MessageCommand:Callback (player: Player, ...: string): CommandExecutionStatusT
         local args: { string } = { ... }
         local message: string = table.concat(args, ' ')
 
@@ -23,7 +42,7 @@ return function(AdminService)
         if success then
             AdminService:ExecuteClientLogic(nil, 'Message', player, filtered:GetNonChatStringForBroadcastAsync())
 
-            self:Log(player, nil, message)
+            AdminService:LogCommand(player, self.Name, nil, message)
             return Command.Success()
         else
             warn(errorMessage)
@@ -31,5 +50,5 @@ return function(AdminService)
         end
     end
 
-    table.insert(AdminService.Commands, MessageCommand)
+    AdminService:RegisterCommand(MessageCommand)
 end
