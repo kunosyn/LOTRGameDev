@@ -92,7 +92,6 @@ function ConfirmBan (
         Position = UDim2.fromScale(.95, .15),
 
         FontFace = Font.fromName 'Balthazar',
-        FontWeight = Enum.FontWeight.Bold,
         RichText = true,
 
         Text = `<b>Confirm Ban</b>`,
