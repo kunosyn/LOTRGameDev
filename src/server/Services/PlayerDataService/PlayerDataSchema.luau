@@ -1,6 +1,4 @@
 return {
-    IsBanned = false,
-
     UnlockedSkills = {
         [0] = {
             1,
