@@ -12,7 +12,7 @@
             },
 
             "Packages": {
-                "$path": "ServerDependencies"
+                "$path": "Import"
             }
         },
 
