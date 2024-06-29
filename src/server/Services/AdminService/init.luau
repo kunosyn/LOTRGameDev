@@ -3,11 +3,17 @@
 
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local ServerStorage = game:GetService('ServerStorage')
+local HttpService = game:GetService('HttpService')
+
+local Environment = require(ServerStorage.Source.Environment)
 local Knit = require(ReplicatedStorage.Packages.Knit)
+local Globals = require(ReplicatedStorage.Source.Globals)
 
 local PlayerDataService = nil
 
-local AdminService = Knit.CreateService({
+
+local AdminService = {
     Name = 'AdminService',
     Config = require(script.AdminConfig),
 
@@ -16,14 +22,15 @@ local AdminService = Knit.CreateService({
         ClientLogicRequest = Knit.CreateSignal()
     },
 
-    Commands = { }
-})
+    Commands = { },
+    CommandLogs = { }
+}
 
 function AdminService:KnitStart ()
     PlayerDataService = Knit.GetService('PlayerDataService')
 
     for _,command in script.Commands:GetChildren() do
-        local builder = require(command) :: ( AdminService: any ) -> ()
+        local builder = require(command) :: ( AdminService: typeof(AdminService) ) -> ()
 
         builder(AdminService)
     end
@@ -55,6 +62,10 @@ function AdminService:ExecuteClientLogic (player: Player?, request: string, ...)
 end
 
 
+function AdminService:RegisterCommand(command)
+    table.insert(self.Commands, command)
+end
+
 function AdminService:Ban (player: Player, duration: number, reason: string?): (boolean, any)
     local success,err = pcall(function()
         Players:BanAsync({
@@ -75,77 +86,95 @@ function AdminService:Ban (player: Player, duration: number, reason: string?): (
     return success, err
 end
 
-function AdminService:LogCommand (executor: Player, commandName: string, target: Player?, reason: string?)
-    
+function AdminService:LogCommand (executor: Player, commandName: string, target: Player? | number?, reason: string?, duration: string?)
+    local headshot: string?
+    local success,err = pcall(function()
+        local response = HttpService:GetAsync(`https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds={executor.UserId}&size=720x720&format=Png&isCircular=false`)
+        response = HttpService:JSONDecode(response).data[1]
+
+        headshot = response.imageUrl
+    end)
+
+    local targetName: string?, targetId: number?
+    if target then
+        targetName = if typeof(target) == 'number' then Players:GetNameFromUserIdAsync(target) else target.Name
+        targetId = if typeof(target) == 'number' then target else target.UserId
+    end
+
+    success,err = pcall(function()
+        local body = {
+            embeds = {
+                {
+                    color = 12490697,
+
+                    author = {
+                        name = `{executor.Name} ({executor.UserId})`,
+                        url = `https://www.roblox.com/users/{executor.UserId}/profile`,
+                        icon_url = if success then headshot else ''
+                    },
+                    
+                    fields = {
+                        {
+                            name = 'Command',
+                            value = commandName,
+                            inline = true
+                        },
+
+                        {
+                            name = 'Executed On',
+                            value = if target then `[{targetName}](https://www.roblox.com/users/{targetId}/profile)` else 'Server',
+                            inline = true
+                        },
+
+                        {
+                            name = 'Timestamp',
+                            value = `\`<t:{os.time()}:F>\``,
+                            inline = true
+                        } 
+                    },
+
+                    footer = {
+                        text = 'Made by kunosyn',
+                        icon_url = 'https://kunosyn.com/icon.png?a53b4d639e148403'
+                    },
+
+                    timestamp = Globals:GetIso8601String()
+                }
+            },
+
+            username = executor.Name,
+            avatar_url = 'https://kunosyn.com/icon.png?a53b4d639e148403'
+        }
+
+
+        if duration then
+            table.insert(body.embeds[1].fields, {
+                name = 'Duration',
+                value = duration,
+                inline = true
+            })
+        end
+
+        if reason and not reason:match('^%s*$') then
+            table.insert(body.embeds[1].fields, {
+                name = if commandName == 'announce' then 'Message' else 'Reason',
+                value = reason,
+                inline = true
+            })
+        end
+
+        HttpService:PostAsync(Environment.WEBHOOK_URL, HttpService:JSONEncode(body))
+    end)
+
+    if success then
+        print('[AdminService]: Successfully logged command to webhook.')
+    else
+        print('[AdminService]: Failed to log command to webhook.')
+        warn(err)
+    end
 end
 
 function AdminService:ProfileLoaded (player: Player, profile)
-    if profile.Data.IsBanned then
-        player:Kick(self.Config.BanMessage)
-    end
-
-    local chatTags: { string } = { self.Config.ChatTags.Users[player.UserId] }
-
-    for groupId,tags in self.Config.ChatTags.Groups do
-        if not player:IsInGroup(groupId) then
-            continue
-        end
-
-        for _,tag in tags do
-            if tag.RankRange then
-                local rankRange = tag.RankRange:split(':')
-                local playerRank = player:GetRankInGroup(groupId)
-                
-                local rangeStart, rangeEnd = tonumber(rankRange[1]), tonumber(rankRange[2])
-                if not rangeStart or not rangeEnd then continue end
-
-                if playerRank >= rangeStart and playerRank <= rangeEnd then
-                    table.insert(chatTags, tag)
-                end
-            elseif tag.RankIds then
-                if table.find(tag.RankIds, player:GetRankInGroup(groupId)) then
-                    table.insert(chatTags, tag)
-                end
-            end
-        end
-    end
-
-    if #chatTags > 0 then
-        self:ExecuteClientLogic(nil, 'ChatTagsAdd', player, chatTags)
-    end
-
-    local nameRedaction = self.Config.RedactedNames.Users[player.UserId]
-
-    if nameRedaction then
-        nameRedaction = nameRedaction.RedactMessage
-        self:ExecuteClientLogic(nil, 'NameRedaction', { player, nameRedaction })
-    else
-        for groupId,redactionData in self.Configs.RedactedNames.Groups do
-            if not player:IsInGroup(groupId) then
-                continue
-            end
-
-
-            if redactionData.RankRange then
-                local rankRange = redactionData.RankRange:split(':')
-                local playerRank = player:GetRankInGroup(groupId)
-
-                local rangeStart, rangeEnd = tonumber(rankRange[1]), tonumber(rankRange[2])
-                if not rangeStart or not rangeEnd then continue end
-
-                if playerRank >= rangeStart and playerRank <= rangeEnd then
-                    nameRedaction = redactionData.RedactMessage
-                    break
-                end
-            elseif redactionData.RankIds then
-                if table.find(redactionData.RankIds, player:GetRankInGroup(groupId)) then
-                    nameRedaction = redactionData.RedactMessage
-                    break
-                end
-            end
-        end
-    end
-
     self:ToggleCommandAutoComplete(player)
 end
 
