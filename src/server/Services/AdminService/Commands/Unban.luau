@@ -6,7 +6,7 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 
 local Command = require(script.Parent.Parent.Command)
-local Globals = require(ReplicatedStorage.Source.Globals)
+local Globals = require(ReplicatedStorage.Source.Libraries.Globals)
 
 local Utility = ServerScriptService.Source.Utility
 local types = require(Utility.Types)

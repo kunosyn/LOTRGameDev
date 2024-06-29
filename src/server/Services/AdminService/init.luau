@@ -8,7 +8,7 @@ local HttpService = game:GetService('HttpService')
 
 local Environment = require(ServerStorage.Source.Environment)
 local Knit = require(ReplicatedStorage.Packages.Knit)
-local Globals = require(ReplicatedStorage.Source.Globals)
+local Globals = require(ReplicatedStorage.Source.Libraries.Globals)
 
 local PlayerDataService = nil
 

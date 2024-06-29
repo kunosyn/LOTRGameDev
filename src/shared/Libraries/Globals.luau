@@ -3,7 +3,7 @@
 
 local Players = game:GetService('Players')
 
-local Duration = require(script.Parent.Configurations.Duration)
+local Duration = require(script.Parent.Parent.Configurations.Duration)
 local Globals = { }
 
 
