@@ -61,10 +61,6 @@ function GuiController:KnitStart ()
     ResetOnSpawn = false,
 
     [Fusion.Children] = {
-      scope:SkillTree({
-        shown = self.SkillUI.SkillTreeDisplayed
-      }),
-
       scope:AdminUi({
         player = self.AdminUI.Player,
         confirmingBan = self.AdminUI.ConfirmingBan
