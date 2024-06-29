@@ -6,7 +6,7 @@ local Players = game:GetService('Players')
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
 local Loader = require(ReplicatedStorage.Packages.Loader)
-local Globals = require(ReplicatedStorage.Source.Globals)
+local Globals = require(ReplicatedStorage.Source.Libraries.Globals)
 
 
 local controllers = Loader.LoadChildren(script.Parent.Controllers, Loader.MatchesName('Controller$'))
